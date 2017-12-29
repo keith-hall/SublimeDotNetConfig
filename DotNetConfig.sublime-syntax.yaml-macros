@@ -6,8 +6,16 @@
 - !merge
   name: .NET Config (XML)
   scope: text.xml.dotnetconfig
-  file_extensions: !prepend
+  file_extensions:
     - config
+  first_line_match: |-
+    ^\s*
+    <configuration
+    (?:\s*xmlns:xdt\s*=\s*"http://schemas\.microsoft\.com/XML-Document-Transform")?
+    \s*
+    >
+    \s*
+    $
 
   contexts: !merge
     tag-stuff: !prepend

@@ -3,27 +3,14 @@
 name: .NET Config (XML)
 file_extensions:
   - config
-  - xml
-  - xsd
-  - xslt
-  - tld
-  - dtml
-  - rss
-  - opml
-  - svg
 first_line_match: |-
-  (?x)
-  ^(?:
-      <\?xml\s
-   #|  \s*<([\w.-]+):Envelope\s+xmlns:\1\s*=\s*"http://schemas.xmlsoap.org/soap/envelope/"\s*>
-   #|  \s*<(?:(?!html\b)([\w.-]+):)?(?:[\w.-]+)\s+xmlns(:\1)?\s*=\s*"[^"]+"\s*>
-   |  \s*<(?!html\b)                # optional whitespace, followed by an open angle bracket that isn't followed by `html`
-      (?:([\w.-]+):)?(?:[\w.-]+)    # an optional namespace, captured into group 1, followed by an element name
-      (?:\s+(?:(?:[\w.-]+):)?(?:[\w.-]+)\s*=\s*"[^"]+")*
-      \s+xmlns(:\1)?\s*=\s*"[^"]+"
-      (?:\s+(?:(?:[\w.-]+):)?(?:[\w.-]+)\s*=\s*"[^"]+")*
-      \s*>                          # a closing angle bracket
-   )
+  ^\s*
+  <configuration
+  (?:\s*xmlns:xdt\s*=\s*"http://schemas\.microsoft\.com/XML-Document-Transform")?
+  \s*
+  >
+  \s*
+  $
 scope: text.xml.dotnetconfig
 variables:
   # This is the full XML Name production, but should not be used where namespaces

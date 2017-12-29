@@ -9,6 +9,8 @@ the XPath syntax in the `xdt:Transform` and `xdt:Locator` attributes, for conven
 
 This package makes use of the [YAMLMacros package](https://packagecontrol.io/packages/YAMLMacros) to build a syntax definition based on the XML syntax definition, with a few extra features for .NET configuration files. This is the easiest way at the moment to extend or modify existing syntax definitions without needing to manually copy and paste the entire definition.
 
+Due to the use of the `embed` feature, this package is only compatible with ST build 3156 or newer.
+
 ## Planned features
 
 Hopefully, in future, we can even get configuration transformation previews to be a function of this plugin, to show the original and transformed configuration files side by side with the differences highlighted...
