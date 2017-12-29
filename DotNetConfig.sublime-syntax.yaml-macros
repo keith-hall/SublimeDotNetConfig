@@ -1,0 +1,29 @@
+%YAML 1.2
+%TAG ! tag:yaml-macros:YAMLMacros.lib.extend,YAMLMacros.lib.include:
+---
+!apply
+- !include_resource XML.sublime-syntax
+- !merge
+  name: .NET Config (XML)
+  scope: text.xml.dotnetconfig
+  file_extensions: !prepend
+    - config
+
+  contexts: !merge
+    tag-stuff: !prepend
+      - match: (?:\s+|^)(xdt)(:)(Transform|Locator)\s*(=)\s*(")
+        captures:
+          1: entity.other.attribute-name.namespace.xml
+          2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+          3: entity.other.attribute-name.localname.xml
+          4: punctuation.separator.key-value.xml
+          5: string.quoted.double.xml punctuation.definition.string.begin.xml
+        embed: xpath
+        embed_scope: string.quoted.double.xml meta.xpath
+        escape: (")
+        escape_captures:
+          1: string.quoted.double.xml punctuation.definition.string.end.xml
+    xpath:
+      - include: entity
+      - include: should-be-entity
+      - include: scope:query.xml.xpath
