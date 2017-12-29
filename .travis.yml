@@ -10,14 +10,14 @@ before_script:
   - find . -mindepth 1 -maxdepth 1 -not -name 'Data' -not -name 'syntax_tests' -exec mv '{}' Data/Packages/DotNetConfig/ \;
   - wget -O Packages.zip https://github.com/sublimehq/Packages/archive/master.zip
   - unzip Packages.zip
-  - find Packages-master/ -mindepth 1 -maxdepth 1 -d -exec mv '{}' Data/Packages/ \;
+  - find Packages-master/ -mindepth 1 -maxdepth 1 -type d -exec mv '{}' Data/Packages/ \;
   - rm -r Packages-master
   - rm Packages.zip
   - wget -O xpath.zip https://github.com/rosshadden/sublime-xpath/archive/master.zip
   - unzip xpath.zip
   - mkdir Data/Packages/xpath
-  - find xpath-master/ -mindepth 1 -maxdepth 1 -d -exec mv '{}' Data/Packages/xpath/ \;
-  - rm -r xpath-master
+  - find sublime-xpath-master/ -mindepth 1 -maxdepth 1 -exec mv '{}' Data/Packages/xpath/ \;
+  - rm -r sublime-xpath-master
   - rm xpath.zip
 script:
 - ./syntax_tests
