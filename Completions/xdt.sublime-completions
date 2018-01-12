@@ -1,0 +1,10 @@
+{
+    "scope": "meta.namespace.xdt",
+
+    "completions": [
+        
+        { "trigger": "Locator\tXDT Attribute", "contents": "Locator=\"$0\"" },
+        { "trigger": "Transform\tXDT Attribute", "contents": "Transform=\"$0\"" },
+        
+    ]
+}

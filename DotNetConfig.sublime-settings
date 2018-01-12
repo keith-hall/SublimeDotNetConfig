@@ -1,0 +1,10 @@
+// These settings override both User and Default settings for the DotNetConfig syntax
+{
+    "auto_complete_triggers":
+    [
+        {
+            "selector": "meta.namespace.xdt",
+            "characters": ":\"",
+        },
+    ],
+}
