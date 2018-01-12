@@ -1,5 +1,5 @@
 %YAML 1.2
-%TAG ! tag:yaml-macros:YAMLMacros.lib.extend,YAMLMacros.lib.include:
+%TAG ! tag:yaml-macros:YAMLMacros.lib.extend,YAMLMacros.lib.include,SublimeDotNetConfig.macros.xml:
 ---
 !apply
 - !include_resource XML.sublime-syntax
@@ -73,18 +73,8 @@
             escape: (?=[">])
           - match: '[^"\s>]+'
             scope: invalid.deprecated.unknown-transform.xdt
-      - match: (?:\s+|^)(xdt)\b(:)?\s*(/?>)
-        captures:
-          0: meta.namespace.xdt
-          1: entity.other.attribute-name.namespace.xml
-          2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
-          3: punctuation.definition.tag.end.xml
-        pop: true
-      - match: (?:\s+|^)(xdt)\b(:)?\s*$
-        captures:
-          0: meta.namespace.xdt
-          1: entity.other.attribute-name.namespace.xml
-          2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+      - include: xdt-completion-stuff
+    xdt-completion-stuff: !xml_attribute_prefix xdt
     xpath:
       - include: entity
       - include: should-be-entity
