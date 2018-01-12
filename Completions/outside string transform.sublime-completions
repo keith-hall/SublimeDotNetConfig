@@ -1,0 +1,18 @@
+{
+    "scope": "meta.xpath.transform.xdt - string",
+
+    "completions": [
+        
+        { "trigger": "Insert\tXDT Transform", "contents": "\"Insert\"" },
+        { "trigger": "InsertIfMissing\tXDT Transform", "contents": "\"InsertIfMissing\"" },
+        { "trigger": "Remove\tXDT Transform", "contents": "\"Remove\"" },
+        { "trigger": "RemoveAll\tXDT Transform", "contents": "\"RemoveAll\"" },
+        { "trigger": "Replace\tXDT Transform", "contents": "\"Replace\"" },
+        
+        { "trigger": "InsertAfter\tXDT Transform", "contents": "\"InsertAfter($0)\"" },
+        { "trigger": "InsertBefore\tXDT Transform", "contents": "\"InsertBefore($0)\"" },
+        { "trigger": "RemoveAttributes\tXDT Transform", "contents": "\"RemoveAttributes($0)\"" },
+        { "trigger": "SetAttributes\tXDT Transform", "contents": "\"SetAttributes($0)\"" },
+        
+    ]
+}

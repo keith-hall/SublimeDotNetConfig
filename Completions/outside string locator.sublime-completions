@@ -1,0 +1,9 @@
+{
+    "scope": "meta.xpath.locator.xdt - string",
+
+    "completions": [
+        { "trigger": "Condition\tXDT Locator", "contents": "\"Condition($0)\"" },
+        { "trigger": "Match\tXDT Locator", "contents": "\"Match($0)\"" },
+        { "trigger": "XPath\tXDT Locator", "contents": "\"XPath($0)\"" },
+    ]
+}
