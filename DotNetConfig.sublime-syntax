@@ -236,60 +236,8 @@ contexts:
         - include: entity
         - include: should-be-entity
   tag-stuff:
-    - match: (?:\s+|^)(xdt)(:)(Locator)\s*(=)\s*(")
-      captures:
-        1: entity.other.attribute-name.namespace.xml
-        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
-        3: entity.other.attribute-name.localname.xml
-        4: punctuation.separator.key-value.xml meta.namespace.xdt
-        5: string.quoted.double.xml meta.xpath.locator.xdt punctuation.definition.string.begin.xml
-      push:
-        - meta_content_scope: string.quoted.double.xml meta.xpath.locator.xdt
-        - match: (?=>)
-          pop: true
-        - match: '"'
-          scope: string.quoted.double.xml meta.xpath.locator.xdt punctuation.definition.string.end.xml
-          pop: true
-        - match: \s*(?=\b(?:Condition|Match|XPath)\b)
-          embed: xpath
-          escape: (?=[">])
-        - match: '[^"\s>]+'
-          scope: invalid.deprecated.unknown-locator.xdt
-    - match: (?:\s+|^)(xdt)(:)(Locator)\s*(=\s*)(/?>)
-      captures:
-        1: entity.other.attribute-name.namespace.xml
-        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
-        3: entity.other.attribute-name.localname.xml
-        4: punctuation.separator.key-value.xml meta.xpath.locator.xdt
-        5: meta.xpath.locator.xdt punctuation.definition.tag.end.xml
-      pop: true
-    - match: (?:\s+|^)(xdt)(:)(Locator)\b\s*(=\s*)?
-      captures:
-        1: entity.other.attribute-name.namespace.xml
-        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
-        3: entity.other.attribute-name.localname.xml
-        4: punctuation.separator.key-value.xml meta.xpath.locator.xdt
-    - match: (?:\s+|^)(xdt)(:)(Transform)\s*(=)\s*(")
-      captures:
-        1: entity.other.attribute-name.namespace.xml
-        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
-        3: entity.other.attribute-name.localname.xml
-        4: punctuation.separator.key-value.xml meta.namespace.xdt
-        5: string.quoted.double.xml meta.xpath.transform.xdt punctuation.definition.string.begin.xml
-      push:
-        - meta_content_scope: string.quoted.double.xml meta.xpath.transform.xdt
-        - match: (?=>)
-          pop: true
-        - match: '"'
-          scope: string.quoted.double.xml meta.xpath.transform.xdt punctuation.definition.string.end.xml
-          pop: true
-        - match: \b(Replace|InsertIfMissing|Insert|RemoveAll|Remove)\b
-          scope: support.function.xdt
-        - match: \s*(?=InsertAfter|InsertBefore|RemoveAttributes|SetAttributes)
-          embed: xpath
-          escape: (?=[">])
-        - match: '[^"\s>]+'
-          scope: invalid.deprecated.unknown-transform.xdt
+    - include: xdt-locator-stuff
+    - include: xdt-transform-stuff
     - include: xdt-completion-stuff
     - match: (?:\s+|^){{qualified_name}}\s*(=)
       captures:
@@ -316,6 +264,84 @@ contexts:
         2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
         '3': punctuation.definition.tag.end.xml
       pop: true
+  xdt-locator-stuff:
+    - match: (?:\s+|^)(xdt)\b(:)(Locator)\s*(=)\s*(")
+      captures:
+        0: meta.namespace.xdt
+        1: entity.other.attribute-name.namespace.xml
+        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+        '3': entity.other.attribute-name.localname.xml
+        '4': punctuation.separator.key-value.xml meta.xpath.locator.xdt
+        '5': string.quoted.double.xml meta.xpath.locator.xdt punctuation.definition.string.begin.xml
+      push:
+        - meta_content_scope: string.quoted.double.xml meta.xpath.locator.xdt
+        - match: (?=>)
+          pop: true
+        - match: '"'
+          scope: string.quoted.double.xml meta.xpath.locator.xdt punctuation.definition.string.end.xml
+          pop: true
+        - match: \b()\b
+          scope: support.function.locator.xdt
+        - match: \s*(?=\b(?:Condition|Match|XPath)\b)
+          embed: xpath
+          escape: (?=[">])
+        - match: '[^"\s>]+'
+          scope: invalid.deprecated.unknown-locator.xdt
+    - match: (?:\s+|^)(xdt)\b(:)(Locator)\s*(=)\s*(/?>)
+      captures:
+        0: meta.namespace.xdt
+        1: entity.other.attribute-name.namespace.xml
+        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+        '3': entity.other.attribute-name.localname.xml
+        '4': punctuation.separator.key-value.xml meta.xpath.locator.xdt
+        '5': meta.xpath.locator.xdt punctuation.definition.tag.end.xml
+      pop: true
+    - match: (?:\s+|^)(xdt)\b(:)(Locator)\s*(=\s*)?
+      captures:
+        0: meta.namespace.xdt
+        1: entity.other.attribute-name.namespace.xml
+        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+        '3': entity.other.attribute-name.localname.xml
+        '4': punctuation.separator.key-value.xml meta.xpath.locator.xdt
+  xdt-transform-stuff:
+    - match: (?:\s+|^)(xdt)\b(:)(Transform)\s*(=)\s*(")
+      captures:
+        0: meta.namespace.xdt
+        1: entity.other.attribute-name.namespace.xml
+        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+        '3': entity.other.attribute-name.localname.xml
+        '4': punctuation.separator.key-value.xml meta.xpath.transform.xdt
+        '5': string.quoted.double.xml meta.xpath.transform.xdt punctuation.definition.string.begin.xml
+      push:
+        - meta_content_scope: string.quoted.double.xml meta.xpath.transform.xdt
+        - match: (?=>)
+          pop: true
+        - match: '"'
+          scope: string.quoted.double.xml meta.xpath.transform.xdt punctuation.definition.string.end.xml
+          pop: true
+        - match: \b(InsertIfMissing|RemoveAll|Replace|Insert|Remove)\b
+          scope: support.function.transform.xdt
+        - match: \s*(?=\b(?:RemoveAttributes|SetAttributes|InsertBefore|InsertAfter)\b)
+          embed: xpath
+          escape: (?=[">])
+        - match: '[^"\s>]+'
+          scope: invalid.deprecated.unknown-transform.xdt
+    - match: (?:\s+|^)(xdt)\b(:)(Transform)\s*(=)\s*(/?>)
+      captures:
+        0: meta.namespace.xdt
+        1: entity.other.attribute-name.namespace.xml
+        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+        '3': entity.other.attribute-name.localname.xml
+        '4': punctuation.separator.key-value.xml meta.xpath.transform.xdt
+        '5': meta.xpath.transform.xdt punctuation.definition.tag.end.xml
+      pop: true
+    - match: (?:\s+|^)(xdt)\b(:)(Transform)\s*(=\s*)?
+      captures:
+        0: meta.namespace.xdt
+        1: entity.other.attribute-name.namespace.xml
+        2: entity.other.attribute-name.xml punctuation.separator.namespace.xml
+        '3': entity.other.attribute-name.localname.xml
+        '4': punctuation.separator.key-value.xml meta.xpath.transform.xdt
   xpath:
     - include: entity
     - include: should-be-entity
