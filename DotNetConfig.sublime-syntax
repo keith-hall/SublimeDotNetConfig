@@ -4,6 +4,7 @@ name: .NET Config (XML)
 file_extensions:
   - config
 first_line_match: |-
+  (?x)
   ^\s*
   <configuration
   (?:\s*xmlns:xdt\s*=\s*"http://schemas\.microsoft\.com/XML-Document-Transform")?
