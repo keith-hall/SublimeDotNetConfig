@@ -283,6 +283,8 @@ contexts:
           pop: true
         - match: \b()\b
           scope: support.function.locator.xdt
+        - match: \b((?:)(?!\s*\())\b
+          scope: support.function.locator.xdt
         - match: \s*(?=\b(?:Condition|Match|XPath)\b)
           embed: xpath
           escape: (?=[">])
@@ -321,6 +323,8 @@ contexts:
           scope: string.quoted.double.xml meta.xpath.transform.xdt punctuation.definition.string.end.xml
           pop: true
         - match: \b(InsertIfMissing|RemoveAll|Replace|Insert|Remove)\b
+          scope: support.function.transform.xdt
+        - match: \b((?:RemoveAttributes|SetAttributes)(?!\s*\())\b
           scope: support.function.transform.xdt
         - match: \s*(?=\b(?:RemoveAttributes|SetAttributes|InsertBefore|InsertAfter)\b)
           embed: xpath

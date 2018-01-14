@@ -24,8 +24,8 @@
       - include: xdt-transform-stuff
       - include: xdt-completion-stuff
     xdt-completion-stuff: !xml_attribute_prefix xdt
-    xdt-locator-stuff: !xml_attribute_xpath [xdt, Locator, 'Condition|Match|XPath', '']
-    xdt-transform-stuff: !xml_attribute_xpath [xdt, Transform, 'InsertAfter|InsertBefore|RemoveAttributes|SetAttributes', 'Insert|InsertIfMissing|RemoveAll|Remove|Replace']
+    xdt-locator-stuff: !xml_attribute_xpath [xdt, Locator, 'Condition|Match|XPath', '', '']
+    xdt-transform-stuff: !xml_attribute_xpath [xdt, Transform, 'InsertAfter|InsertBefore', 'RemoveAttributes|SetAttributes', 'Insert|InsertIfMissing|RemoveAll|Remove|Replace']
     xpath:
       - include: entity
       - include: should-be-entity
