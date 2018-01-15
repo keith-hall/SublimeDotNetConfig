@@ -1,0 +1,5 @@
+{
+    "selector": "text.xml.dotnetconfig",
+    "target": "xdt_transform",
+    "transformation_file": "$file",
+}
