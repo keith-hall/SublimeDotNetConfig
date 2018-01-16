@@ -17,7 +17,7 @@ def exec_subprocess(cmd):
     subprocess.call(cmd, cwd = cache_path(), startupinfo = startupinfo)
 
 class XdtTransformCommand(sublime_plugin.WindowCommand):
-    def run(self, transformation_file, base_file = None):
+    def run(self, transformation_file, base_file = None, verbose = False):
         if not os.path.isdir(cache_path()):
             setup_project()
         
@@ -26,7 +26,7 @@ class XdtTransformCommand(sublime_plugin.WindowCommand):
             base_file = expand_variables(self.window, base_file)
         
         if os.path.isfile(transformation_file):
-            do_transform(self.window, base_file, transformation_file)
+            do_transform(self.window, base_file, transformation_file, verbose = verbose)
         else:
             # TODO: prompt for transformation file
             #       - if transformation_file is a folder, show relevant files inside it
@@ -80,31 +80,23 @@ def get_variables_for_file_path(file_path, prefix):
         prefix + '_base_name': file_name_no_ext,
     }
 
-def do_transform(window, base_file, transformation_file):
+def do_transform(window, base_file, transformation_file, verbose = False):
     if transformation_file and not base_file:
         base_file = find_base_file(transformation_file)
     
     path = cache_path()
     # perform the transformation
     cmd = ['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')]
+    if verbose:
+        cmd.append('-v')
     exec_subprocess(cmd)
     # it'd be great to call the Default build system target, `exec`, here, to get bulletproof stdout logging in a panel
     # but, unfortunately, there is no way to tell when the build has finished, so that we can open the output file
-    #window.run_command('exec', { 'cmd': cmd + ['-v'], 'working_dir': path })
+    #window.run_command('exec', { 'cmd': cmd, 'working_dir': path })
     
     # open the transformed file
     if window:
         view = window.open_file(os.path.join(path, 'transformed.config'))
-        def check_loaded():
-            if view.is_loading():
-                sublime.set_timeout_async(check_loaded, 5)
-            else:
-                # retarget the view so it is as if the file hasn't been saved anywhere yet
-                view.retarget('')
-                # pretty print the file - this currently uses https://packagecontrol.io/packages/IndentX if it is installed
-                view.run_command('basic_indent')
-        # after the file has loaded, perform some actions
-        check_loaded()
 
 def find_base_file(transformation_file):
     """Given the full path to the file that contains the transformation to apply, guess the filename of the base file to be transformed, and return the path to it."""
@@ -112,3 +104,15 @@ def find_base_file(transformation_file):
     transformation_filename, extension = os.path.splitext(os.path.basename(transformation_file))
     base_file = transformation_filename.split('.', maxsplit = 1)[0] + extension
     return os.path.join(base_folder, base_file)
+
+class TransformationListener(sublime_plugin.EventListener):
+    def on_load_async(self, view):
+        if view.file_name():
+            if view.file_name() == os.path.join(cache_path(), 'transformed.config'):
+                after_transformed_file_loaded(view)
+
+def after_transformed_file_loaded(view):
+    # retarget the view so it is as if the file hasn't been saved anywhere yet
+    view.retarget('')
+    # pretty print the file - this currently uses https://packagecontrol.io/packages/IndentX if it is installed
+    view.run_command('basic_indent')
