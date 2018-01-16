@@ -23,12 +23,12 @@ class XdtTransformCommand(sublime_plugin.WindowCommand):
             ET.SubElement(item_group, 'DotNetCliToolReference', attrib = { 'Include': 'Microsoft.DotNet.Xdt.Tools', 'Version': '2.0.0' })
             # save the project file
             tree.write(os.path.join(path, 'xdt-transform.csproj'))
-            # execute the build command so that it will download the NuGet package
+            # execute the build command so that it will download the NuGet package and the project - using `restore` isn't enough
             subprocess.call(['dotnet', 'build'], cwd = path)
         
-        # TODO: more useful expansion of env vars
-        if transformation_file == '$file':
-            transformation_file = self.window.active_view().file_name()
+        transformation_file = expand_variables(self.window, transformation_file)
+        if base_file:
+            base_file = expand_variables(self.window, base_file)
         
         if os.path.isfile(transformation_file):
             do_transform(self.window, base_file, transformation_file)
@@ -38,6 +38,32 @@ class XdtTransformCommand(sublime_plugin.WindowCommand):
             #         otherwise, show relevant files from inside the folder containing base_file
             #         - if no such folder, show error
             pass
+
+def expand_variables(window, text):
+    return sublime.expand_variables(text,
+        dict(
+            dict(
+                {
+                    'packages': sublime.packages_path(),
+                    'folder': next(iter(window.folders()), None),
+                    'cache_path': sublime.cache_path(),
+                },
+                **get_variables_for_file_path(window.active_view().file_name(), 'file')
+            ),
+            **get_variables_for_file_path(window.project_file_name(), 'project')
+        )
+    )
+
+def get_variables_for_file_path(file_path, prefix):
+    file_name = os.path.basename(file_path)
+    file_name_no_ext, file_extension = os.path.splitext(file_name)
+    return {
+        prefix: file_path,
+        prefix + '_path': os.path.dirname(file_path),
+        prefix + '_name': file_name,
+        prefix + '_extension': file_extension,
+        prefix + '_base_name': file_name_no_ext,
+    }
 
 def do_transform(window, base_file, transformation_file):
     if transformation_file and not base_file:
