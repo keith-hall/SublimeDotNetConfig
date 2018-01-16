@@ -8,13 +8,21 @@ import xml.etree.ElementTree as ET
 def cache_path():
     return os.path.join(sublime.cache_path(), 'xdt-transform')
 
+def exec_subprocess(cmd):
+    # Hide the console window on Windows
+    startupinfo = None
+    if os.name == "nt":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    subprocess.call(cmd, cwd = cache_path(), startupinfo = startupinfo)
+
 class XdtTransformCommand(sublime_plugin.WindowCommand):
     def run(self, transformation_file, base_file = None):
         path = cache_path()
         if not os.path.isdir(path):
             os.makedirs(path, exist_ok=True)
             # set up a new .NET Core 2.0 project
-            subprocess.call(['dotnet', 'new', 'web'], cwd = path)
+            exec_subprocess(['dotnet', 'new', 'web'])
             # read the project config
             tree = ET.parse(os.path.join(path, 'xdt-transform.csproj'))
             root = tree.getroot()
@@ -24,7 +32,7 @@ class XdtTransformCommand(sublime_plugin.WindowCommand):
             # save the project file
             tree.write(os.path.join(path, 'xdt-transform.csproj'))
             # execute the build command so that it will download the NuGet package and the project - using `restore` isn't enough
-            subprocess.call(['dotnet', 'build'], cwd = path)
+            exec_subprocess(['dotnet', 'build'])
         
         transformation_file = expand_variables(self.window, transformation_file)
         if base_file:
@@ -40,21 +48,25 @@ class XdtTransformCommand(sublime_plugin.WindowCommand):
             pass
 
 def expand_variables(window, text):
-    return sublime.expand_variables(text,
+    return sublime.expand_variables(text, get_variables_for_window(window))
+
+def get_variables_for_window(window):
+    return dict(
         dict(
-            dict(
-                {
-                    'packages': sublime.packages_path(),
-                    'folder': next(iter(window.folders()), None),
-                    'cache_path': sublime.cache_path(),
-                },
-                **get_variables_for_file_path(window.active_view().file_name(), 'file')
-            ),
-            **get_variables_for_file_path(window.project_file_name(), 'project')
-        )
+            {
+                'packages': sublime.packages_path(),
+                'folder': next(iter(window.folders()), ''),
+                'cache_path': sublime.cache_path(),
+            },
+            **get_variables_for_file_path(window.active_view().file_name(), 'file')
+        ),
+        **get_variables_for_file_path(window.project_file_name(), 'project')
     )
 
 def get_variables_for_file_path(file_path, prefix):
+    if not file_path:
+        return dict()
+    
     file_name = os.path.basename(file_path)
     file_name_no_ext, file_extension = os.path.splitext(file_name)
     return {
@@ -71,7 +83,7 @@ def do_transform(window, base_file, transformation_file):
     
     path = cache_path()
     # perform the transformation
-    subprocess.call(['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')], cwd = path)
+    exec_subprocess(['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')])
     
     # open the transformed file
     if window:
