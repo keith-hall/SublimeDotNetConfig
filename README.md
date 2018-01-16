@@ -17,8 +17,13 @@ Due to the use of the `embed` feature, this package is only compatible with ST b
 
 Configuration Transformations require the `.NET Core 2.0 SDK` to be installed and available on the `PATH`. This functionality uses https://www.nuget.org/packages/Microsoft.DotNet.Xdt.Tools/ to perform the transformations. It can be a little slow the first time the build command is used, due to it needing to create a new project, download the package and build the project.
 
+After the file has been transformed, it is automatically opened in ST, and acts just like any normal unsaved config file. As an added bonus, if you have https://packagecontrol.io/packages/IndentX installed, the file will be pretty-printed/indented after transformation.
+
 ## Planned features
 
-Hopefully, in future, we can even get configuration transformation previews to show the original and transformed configuration files side by side with the differences highlighted... These should probably be formatted first aka "pretty printed", for easier comparison.
+Hopefully, in future, we can even get configuration transformation previews to show the original and transformed configuration files side by side with the differences highlighted...
+It may turn out to be useful to be able to turn the pretty-printing off via a preference, or to pretty-print the source file as well for comparison.
 
 Autocompletion for known .NET configuration elements and attributes would also be cool.
+
+It might also be useful to be able to create a transform file automatically from a source file and a target file, for cases where, for example, a Production config file has been altered by somebody with access to that environment, and you want to ensure your deployment script doesn't lose those changes, while also keeping them under source control. https://github.com/CameronWills/FatAntelope looks useful in this regard, but unfortunately targets the full .NET Framework.

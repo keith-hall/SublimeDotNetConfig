@@ -18,21 +18,8 @@ def exec_subprocess(cmd):
 
 class XdtTransformCommand(sublime_plugin.WindowCommand):
     def run(self, transformation_file, base_file = None):
-        path = cache_path()
-        if not os.path.isdir(path):
-            os.makedirs(path, exist_ok=True)
-            # set up a new .NET Core 2.0 project
-            exec_subprocess(['dotnet', 'new', 'web'])
-            # read the project config
-            tree = ET.parse(os.path.join(path, 'xdt-transform.csproj'))
-            root = tree.getroot()
-            item_group = root.findall("./ItemGroup[PackageReference]")[0]
-            # add a sub element to reference the NuGet package required for XML config transformations
-            ET.SubElement(item_group, 'DotNetCliToolReference', attrib = { 'Include': 'Microsoft.DotNet.Xdt.Tools', 'Version': '2.0.0' })
-            # save the project file
-            tree.write(os.path.join(path, 'xdt-transform.csproj'))
-            # execute the build command so that it will download the NuGet package and the project - using `restore` isn't enough
-            exec_subprocess(['dotnet', 'build'])
+        if not os.path.isdir(cache_path()):
+            setup_project()
         
         transformation_file = expand_variables(self.window, transformation_file)
         if base_file:
@@ -46,6 +33,22 @@ class XdtTransformCommand(sublime_plugin.WindowCommand):
             #         otherwise, show relevant files from inside the folder containing base_file
             #         - if no such folder, show error
             pass
+
+def setup_project():
+    path = cache_path()
+    os.makedirs(path, exist_ok=True)
+    # set up a new .NET Core 2.0 project in the cache dir
+    exec_subprocess(['dotnet', 'new', 'web'])
+    # read the project config
+    tree = ET.parse(os.path.join(path, 'xdt-transform.csproj'))
+    root = tree.getroot()
+    item_group = root.findall("./ItemGroup[PackageReference]")[0]
+    # add a sub element to reference the NuGet package required for XML config transformations
+    ET.SubElement(item_group, 'DotNetCliToolReference', attrib = { 'Include': 'Microsoft.DotNet.Xdt.Tools', 'Version': '2.0.0' })
+    # save the project file
+    tree.write(os.path.join(path, 'xdt-transform.csproj'))
+    # execute the build command so that it will download the NuGet package and the project - using `restore` isn't enough
+    exec_subprocess(['dotnet', 'build'])
 
 def expand_variables(window, text):
     return sublime.expand_variables(text, get_variables_for_window(window))
@@ -83,7 +86,11 @@ def do_transform(window, base_file, transformation_file):
     
     path = cache_path()
     # perform the transformation
-    exec_subprocess(['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')])
+    cmd = ['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')]
+    exec_subprocess(cmd)
+    # it'd be great to call the Default build system target, `exec`, here, to get bulletproof stdout logging in a panel
+    # but, unfortunately, there is no way to tell when the build has finished, so that we can open the output file
+    #window.run_command('exec', { 'cmd': cmd + ['-v'], 'working_dir': path })
     
     # open the transformed file
     if window:
