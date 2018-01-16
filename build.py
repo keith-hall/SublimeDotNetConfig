@@ -75,7 +75,17 @@ def do_transform(window, base_file, transformation_file):
     
     # open the transformed file
     if window:
-        window.open_file(os.path.join(path, 'transformed.config'))
+        view = window.open_file(os.path.join(path, 'transformed.config'))
+        def check_loaded():
+            if view.is_loading():
+                sublime.set_timeout_async(check_loaded, 5)
+            else:
+                # retarget the view so it is as if the file hasn't been saved anywhere yet
+                view.retarget('')
+                # pretty print the file - this currently uses https://packagecontrol.io/packages/IndentX if it is installed
+                view.run_command('basic_indent')
+        # after the file has loaded, perform some actions
+        check_loaded()
 
 def find_base_file(transformation_file):
     """Given the full path to the file that contains the transformation to apply, guess the filename of the base file to be transformed, and return the path to it."""
