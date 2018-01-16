@@ -86,7 +86,11 @@ def do_transform(window, base_file, transformation_file):
     
     path = cache_path()
     # perform the transformation
-    exec_subprocess(['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')])
+    cmd = ['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')]
+    exec_subprocess(cmd)
+    # it'd be great to call the Default build system target, `exec`, here, to get bulletproof stdout logging in a panel
+    # but, unfortunately, there is no way to tell when the build has finished, so that we can open the output file
+    #window.run_command('exec', { 'cmd': cmd + ['-v'], 'working_dir': path })
     
     # open the transformed file
     if window:
