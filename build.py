@@ -3,6 +3,7 @@ import sublime_plugin
 import os
 import subprocess
 import xml.etree.ElementTree as ET
+import shlex
 
 
 def cache_path():
@@ -93,10 +94,16 @@ def do_transform(window, base_file, transformation_file, verbose = False):
     # it'd be great to call the Default build system target, `exec`, here, to get bulletproof stdout logging in a panel
     # but, unfortunately, there is no way to tell when the build has finished, so that we can open the output file
     #window.run_command('exec', { 'cmd': cmd, 'working_dir': path })
+    # here we work around that by using a shell command to open the output file in ST, which will run when the transformation completes successfully
+    shell_cmd = ' '.join([shlex.quote(token) for token in cmd]) + ' && ' + shlex.quote(sublime.executable_path()) + ' ' + shlex.quote(os.path.join(path, 'transformed.config'))
+    if sublime.platform() == 'windows':
+        # TODO: this is an ugly hack which will fail if a file path contains an apostrophe
+        shell_cmd = shell_cmd.replace("'", '"')
     
-    # open the transformed file
-    if window:
-        view = window.open_file(os.path.join(path, 'transformed.config'))
+    window.run_command('exec', {
+        'shell_cmd': shell_cmd,
+        'working_dir': path,
+    })
 
 def find_base_file(transformation_file):
     """Given the full path to the file that contains the transformation to apply, guess the filename of the base file to be transformed, and return the path to it."""
