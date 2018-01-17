@@ -2,4 +2,10 @@
     "selector": "text.xml.dotnetconfig",
     "target": "xdt_transform",
     "transformation_file": "$file",
+    "variants": [
+        {
+            "name": "XDT Config Transformation - verbose mode",
+            "verbose": true,
+        },
+    ],
 }
