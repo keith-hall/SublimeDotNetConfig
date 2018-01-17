@@ -92,17 +92,15 @@ class TransformationListener(sublime_plugin.EventListener):
         if not (command.startswith('exec_') and command != 'exec_show_output' and args.get('action', '').startswith('xdt-')):
             return
         
-        if command == 'exec_data_received':
-            panel = window.find_output_panel('exec')
-            panel.run_command('append', { 'characters': args['data'] })
-        elif command == 'exec_finished':
+        panel = window.find_output_panel('exec')
+        if command == 'exec_finished':
             elapsed = args['elapsed']
             exit_code = args['exit_code']
-            data = '[Finished in {:.1f}s{}]\n'.format(elapsed, '' if exit_code == 0 else ' with exit code {}'.format(exit_code))
-            
-            panel = window.find_output_panel('exec')
-            panel.run_command('append', { 'characters': data })
-            
+            args['data'] = '[Finished in {:.1f}s{}]\n'.format(elapsed, '' if exit_code == 0 else ' with exit code {}'.format(exit_code))
+        
+        panel.run_command('append', { 'characters': args['data'] })
+        
+        if command == 'exec_finished':
             action = args['action'][len('xdt-'):]
             if action == 'do_transform':
                 path = args['args']['open']
