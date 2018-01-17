@@ -1,44 +1,49 @@
 import sublime
 import sublime_plugin
 import os
-import subprocess
 import xml.etree.ElementTree as ET
+from .exec_cmd import get_variables_for_window
 
 
 def cache_path():
     return os.path.join(sublime.cache_path(), 'xdt-transform')
 
-def exec_subprocess(cmd):
-    # Hide the console window on Windows
-    startupinfo = None
-    if os.name == "nt":
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    subprocess.call(cmd, cwd = cache_path(), startupinfo = startupinfo)
-
 class XdtTransformCommand(sublime_plugin.WindowCommand):
     def run(self, transformation_file, base_file = None, verbose = False):
+        panel = self.window.create_output_panel('exec')
+        show_panel_on_build = sublime.load_settings('Preferences.sublime-settings').get('show_panel_on_build', True)
+        if show_panel_on_build:
+            self.window.run_command('show_panel', { 'panel': 'output.exec' })
+        
         if not os.path.isdir(cache_path()):
-            setup_project()
-        
-        transformation_file = expand_variables(self.window, transformation_file)
-        if base_file:
-            base_file = expand_variables(self.window, base_file)
-        
-        if os.path.isfile(transformation_file):
-            do_transform(self.window, base_file, transformation_file, verbose = verbose)
+            create_project(self.window, base_file = base_file, transformation_file = transformation_file, verbose = verbose)
         else:
-            # TODO: prompt for transformation file
-            #       - if transformation_file is a folder, show relevant files inside it
-            #         otherwise, show relevant files from inside the folder containing base_file
-            #         - if no such folder, show error
-            pass
+            transform(self.window, base_file = base_file, transformation_file = transformation_file, verbose = verbose)
 
-def setup_project():
+def transform(window, base_file, transformation_file, verbose):
+    window_variables = get_variables_for_window(window)
+    transformation_file = sublime.expand_variables(transformation_file, window_variables)
+    if base_file:
+        base_file = sublime.expand_variables(base_file, window_variables)
+    
+    if os.path.isfile(transformation_file):
+        do_transform(window, base_file, transformation_file, verbose = verbose)
+    else:
+        # TODO: prompt for transformation file
+        #       - if transformation_file is a folder, show relevant files inside it
+        #         otherwise, show relevant files from inside the folder containing base_file
+        #         - if no such folder, show an error
+        pass
+
+def create_project(window, **kwargs):
     path = cache_path()
-    os.makedirs(path, exist_ok=True)
+    os.makedirs(path, exist_ok = True)
     # set up a new .NET Core 2.0 project in the cache dir
-    exec_subprocess(['dotnet', 'new', 'web'])
+    cmd = ['dotnet', 'new', 'web']
+    window.run_command('exec_show_output', { 'cmd': cmd, 'working_dir': path, 'action': 'xdt-create_project', 'args': kwargs })
+
+def build_project(window, **kwargs):
+    path = cache_path()
     # read the project config
     tree = ET.parse(os.path.join(path, 'xdt-transform.csproj'))
     root = tree.getroot()
@@ -48,55 +53,20 @@ def setup_project():
     # save the project file
     tree.write(os.path.join(path, 'xdt-transform.csproj'))
     # execute the build command so that it will download the NuGet package and the project - using `restore` isn't enough
-    exec_subprocess(['dotnet', 'build'])
-
-def expand_variables(window, text):
-    return sublime.expand_variables(text, get_variables_for_window(window))
-
-def get_variables_for_window(window):
-    return dict(
-        dict(
-            {
-                'packages': sublime.packages_path(),
-                'folder': next(iter(window.folders()), ''),
-                'cache_path': sublime.cache_path(),
-            },
-            **get_variables_for_file_path(window.active_view().file_name(), 'file')
-        ),
-        **get_variables_for_file_path(window.project_file_name(), 'project')
-    )
-
-def get_variables_for_file_path(file_path, prefix):
-    if not file_path:
-        return dict()
-    
-    file_name = os.path.basename(file_path)
-    file_name_no_ext, file_extension = os.path.splitext(file_name)
-    return {
-        prefix: file_path,
-        prefix + '_path': os.path.dirname(file_path),
-        prefix + '_name': file_name,
-        prefix + '_extension': file_extension,
-        prefix + '_base_name': file_name_no_ext,
-    }
+    cmd = ['dotnet', 'build']
+    window.run_command('exec_show_output', { 'cmd': cmd, 'working_dir': path, 'action': 'xdt-build_project', 'args': kwargs })
 
 def do_transform(window, base_file, transformation_file, verbose = False):
     if transformation_file and not base_file:
         base_file = find_base_file(transformation_file)
     
     path = cache_path()
+    output_file = os.path.join(path, 'transformed.config')
     # perform the transformation
-    cmd = ['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', os.path.join(path, 'transformed.config')]
+    cmd = ['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', output_file]
     if verbose:
         cmd.append('-v')
-    exec_subprocess(cmd)
-    # it'd be great to call the Default build system target, `exec`, here, to get bulletproof stdout logging in a panel
-    # but, unfortunately, there is no way to tell when the build has finished, so that we can open the output file
-    #window.run_command('exec', { 'cmd': cmd, 'working_dir': path })
-    
-    # open the transformed file
-    if window:
-        view = window.open_file(os.path.join(path, 'transformed.config'))
+    window.run_command('exec_show_output', { 'cmd': cmd, 'working_dir': path, 'action': 'xdt-do_transform', 'args': { 'open': output_file } })
 
 def find_base_file(transformation_file):
     """Given the full path to the file that contains the transformation to apply, guess the filename of the base file to be transformed, and return the path to it."""
@@ -110,6 +80,31 @@ class TransformationListener(sublime_plugin.EventListener):
         if view.file_name():
             if view.file_name() == os.path.join(cache_path(), 'transformed.config'):
                 after_transformed_file_loaded(view)
+    
+    def on_post_window_command(self, window, command, args):
+        if not (command.startswith('exec_') and command != 'exec_show_output' and args.get('action', '').startswith('xdt-')):
+            return
+        
+        if command == 'exec_data_received':
+            panel = window.find_output_panel('exec')
+            panel.run_command('append', { 'characters': args['data'] })
+        elif command == 'exec_finished':
+            elapsed = args['elapsed']
+            exit_code = args['exit_code']
+            data = '[Finished in {:.1f}s{}]\n'.format(elapsed, '' if exit_code == 0 else ' with exit code {}'.format(exit_code))
+            
+            panel = window.find_output_panel('exec')
+            panel.run_command('append', { 'characters': data })
+            
+            action = args['action'][len('xdt-'):]
+            if action == 'do_transform':
+                path = args['args']['open']
+                if os.path.isfile(path):
+                    window.open_file(path)
+            elif action == 'create_project':
+                build_project(window, **args['args'])
+            elif action == 'build_project':
+                transform(window, **args['args'])
 
 def after_transformed_file_loaded(view):
     # retarget the view so it is as if the file hasn't been saved anywhere yet
