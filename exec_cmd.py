@@ -38,10 +38,11 @@ class ExecShowOutputCommand(sublime_plugin.WindowCommand, ProcessListener):
     encoding = 'utf-8'
     action = dict()
 
-    def run(self, working_dir = None, **kwargs):
+    def run(self, action, working_dir = None, **kwargs):
         if working_dir:
             os.chdir(working_dir)
 
+        kwargs['action'] = action
         proc = AsyncProcess(kwargs.get('cmd', []), kwargs.get('shell_cmd', ''), kwargs.get('env', {}), self)
         # I wonder if we could have a race condition here, where on_data or on_finished could get called first?
         self.action[proc] = kwargs
@@ -57,9 +58,9 @@ class ExecShowOutputCommand(sublime_plugin.WindowCommand, ProcessListener):
 # TODO: switch to a publish/subscribe model instead of relying on listening for post window command events, as they are not always fired (i.e. when run from another synchronous command)
 
 class ExecDataReceived(sublime_plugin.WindowCommand):
-    def run(self, **kwargs):
+    def run(self, data, action, **kwargs):
         pass
 
 class ExecFinished(sublime_plugin.WindowCommand):
-    def run(self, **kwargs):
+    def run(self, action, **kwargs):
         pass
