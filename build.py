@@ -72,7 +72,7 @@ def find_base_file(transformation_file):
     """Given the full path to the file that contains the transformation to apply, guess the filename of the base file to be transformed, and return the path to it."""
     base_folder = os.path.dirname(transformation_file)
     transformation_filename, extension = os.path.splitext(os.path.basename(transformation_file))
-    base_file = transformation_filename.split('.', maxsplit = 1)[0] + extension
+    base_file = transformation_filename.rsplit('.', maxsplit = 1)[0] + extension
     return os.path.join(base_folder, base_file)
 
 class TransformationListener(sublime_plugin.EventListener):
