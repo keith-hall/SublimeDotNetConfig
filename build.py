@@ -59,6 +59,13 @@ def build_project(window, **kwargs):
 def do_transform(window, base_file, transformation_file, verbose = False):
     if transformation_file and not base_file:
         base_file = find_base_file(transformation_file)
+        if verbose:
+            window.run_command('exec_data_received', { 'data': 'File to transform not specified, trying "{}"...\n'.format(base_file), 'action': 'xdt-do_transform' })
+        # if the inferred base file doesn't exist, fall back to `App.config`
+        if not os.path.isfile(base_file):
+            base_file = os.path.join(os.path.dirname(transformation_file), 'App.config')
+            if verbose:
+                window.run_command('exec_data_received', { 'data': 'File to transform not found, falling back to "{}"...\n'.format(base_file), 'action': 'xdt-do_transform' })
     
     path = cache_path()
     output_file = os.path.join(path, 'transformed.config')
@@ -85,17 +92,15 @@ class TransformationListener(sublime_plugin.EventListener):
         if not (command.startswith('exec_') and command != 'exec_show_output' and args.get('action', '').startswith('xdt-')):
             return
         
-        if command == 'exec_data_received':
-            panel = window.find_output_panel('exec')
-            panel.run_command('append', { 'characters': args['data'] })
-        elif command == 'exec_finished':
+        panel = window.find_output_panel('exec')
+        if command == 'exec_finished':
             elapsed = args['elapsed']
             exit_code = args['exit_code']
-            data = '[Finished in {:.1f}s{}]\n'.format(elapsed, '' if exit_code == 0 else ' with exit code {}'.format(exit_code))
-            
-            panel = window.find_output_panel('exec')
-            panel.run_command('append', { 'characters': data })
-            
+            args['data'] = '[Finished in {:.1f}s{}]\n'.format(elapsed, '' if exit_code == 0 else ' with exit code {}'.format(exit_code))
+        
+        panel.run_command('append', { 'characters': args['data'] })
+        
+        if command == 'exec_finished':
             action = args['action'][len('xdt-'):]
             if action == 'do_transform':
                 path = args['args']['open']
