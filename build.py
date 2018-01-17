@@ -89,7 +89,7 @@ class TransformationListener(sublime_plugin.EventListener):
                 after_transformed_file_loaded(view)
     
     def on_post_window_command(self, window, command, args):
-        if not (command.startswith('exec_') and command != 'exec_show_output' and args.get('action', '').startswith('xdt-')):
+        if command not in ('exec_finished', 'exec_data_received') or not args.get('action', '').startswith('xdt-'):
             return
         
         panel = window.find_output_panel('exec')
