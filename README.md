@@ -19,6 +19,10 @@ Configuration Transformations require the `.NET Core 2.0 SDK` to be installed an
 
 After the file has been transformed, it is automatically opened in ST, and acts just like any normal unsaved config file. As an added bonus, if you have https://packagecontrol.io/packages/IndentX installed, the file will be pretty-printed/indented after transformation.
 
+### Unit Tests
+
+To run the unit tests, you will need to install https://packagecontrol.io/packages/UnitTesting, and then use the `UnitTesting: Test Current Package` entry in the command palette.
+
 ## Planned features
 
 Hopefully, in future, we can even get configuration transformation previews to show the original and transformed configuration files side by side with the differences highlighted...
