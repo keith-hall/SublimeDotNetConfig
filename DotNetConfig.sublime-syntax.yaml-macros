@@ -29,4 +29,14 @@
     xpath:
       - include: entity
       - include: should-be-entity
+      - include: condition
       - include: scope:query.xml.xpath
+    condition:
+      - match: (Condition)\s*(\()
+        captures:
+          0: variable.function.xpath
+          2: punctuation.section.arguments.begin.xpath.subexpression
+        set: [scope:query.xml.xpath#inside_function, condition_args]
+    condition_args:
+      - include: scope:query.xml.xpath#base_without_pop
+      - include: scope:query.xml.xpath#operator_or_predicate

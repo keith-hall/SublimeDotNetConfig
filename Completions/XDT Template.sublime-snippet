@@ -1,0 +1,10 @@
+<snippet>
+	<scope>text.xml.dotnetconfig - meta.tag</scope>
+	<content><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<${1:configuration} xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+	$0
+</${1:configuration}>]]></content>
+	<tabTrigger>xdtt</tabTrigger>
+	<description>XML Document Transformation Template</description>
+</snippet>
