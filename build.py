@@ -69,7 +69,7 @@ def do_transform(window, base_file, transformation_file, verbose = False):
     cmd = ['dotnet', 'transform-xdt', '-x', base_file, '-t', transformation_file, '-o', output_file]
     if verbose:
         cmd.append('-v')
-    window.run_command('exec_show_output', { 'cmd': cmd, 'working_dir': path, 'action': 'xdt-do_transform', 'args': { 'open': output_file } })
+    window.run_command('exec_show_output', { 'cmd': cmd, 'working_dir': path, 'action': 'xdt-do_transform', 'args': { 'open': output_file, 'base_file': base_file } })
 
 def get_base_file(transformation_file, log_action):
     base_file = find_base_file(transformation_file)
@@ -111,6 +111,8 @@ class TransformationListener(sublime_plugin.EventListener):
                 path = args['args']['open']
                 # if the output file exists (NOTE: we could also maybe check the exit_code)
                 if os.path.isfile(path):
+                    # show a diff
+                    #window.run_command('diff_files', { 'files': [path, args['args']['base_file']] })
                     # open it in ST (note that our on_load hook will fire)
                     window.open_file(path)
             elif action == 'create_project':
@@ -131,10 +133,6 @@ def is_base_file(path):
 class XdtOpenBaseFile(sublime_plugin.WindowCommand):
     def run(self):
         path = self.window.active_view().file_name()
-        # NOTE: code below commented because situation cannot occur due to `is_enabled` check
-        # if is_base_file(path):
-        #     window.status_message('This is already the base file')
-        # else:
         actions_taken = list()
         def log_action(data):
             actions_taken.append(data)
@@ -145,4 +143,4 @@ class XdtOpenBaseFile(sublime_plugin.WindowCommand):
     def is_enabled(self):
         view = self.window.active_view()
         path = view.file_name()
-        return path and not is_base_file(path) and view.match_selector(0, 'text.xml.dotnetconfig')
+        return path is not None and not is_base_file(path) and view.match_selector(0, 'text.xml.dotnetconfig')
